@@ -2,7 +2,6 @@
 
 use server::Server;
 use web_handler::WebHandler;
-use std::fs;
 
 mod http;
 mod server;

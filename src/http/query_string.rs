@@ -21,10 +21,10 @@ impl<'buf> From<&'buf str> for QueryString<'buf> {
     fn from(query_string: &'buf str) -> Self {
         let mut data = HashMap::new();
 
-        for pair in query_string.split('&') {
-            if let Some(i) = pair.find('=') {
-                let key = &pair[..i];
-                let value = &pair[i + 1..];
+        for qs in query_string.split('&') {
+            if let Some(i) = qs.find('=') {
+                let key = &qs[..i];
+                let value = &qs[i + 1..];
 
                 data.entry(key)
                     .and_modify(|existing: &mut Value| match existing {

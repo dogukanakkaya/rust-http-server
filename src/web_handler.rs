@@ -33,15 +33,21 @@ impl Handler for WebHandler {
     fn handle_request(&self, request: &Request) -> Response {
         match request.method() {
             Method::GET => match request.path() {
-                "/" =>  Response::new(self.read_file("index.html"), StatusCode::Ok),
-                "/about" =>  Response::new(self.read_file("about.html"), StatusCode::Ok),
+                "/" => {
+                    let headers = Vec::from([
+                        "Accept: application/html",
+                        "Age: 132423"
+                    ]);
+
+                    Response::new(self.read_file("index.html"), StatusCode::Ok, Some(headers))
+                },
+                "/about" => Response::new(self.read_file("about.html"), StatusCode::Ok, None),
                 path => match self.read_file(path) {
-                    Some(content) => Response::new(Some(content), StatusCode::Ok),
-                    None => Response::new(None, StatusCode::NotFound)
+                    Some(content) => Response::new(Some(content), StatusCode::Ok, None),
+                    None => Response::new(None, StatusCode::NotFound, None)
                 }
             },
-            _ => Response::new(None, StatusCode::BadRequest)
+            _ => Response::new(None, StatusCode::BadRequest, None)
         }
-
     }
 }

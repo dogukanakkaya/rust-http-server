@@ -1,16 +1,18 @@
 use std::io::{Write, Result as IoResult};
-use super::StatusCode;
+use super::{StatusCode};
 
-pub struct Response {
+pub struct Response<'a> {
     body: Option<String>,
     status_code: StatusCode,
+    headers: Option<Vec<&'a str>>,
 }
 
-impl Response {
-    pub fn new(body: Option<String>, status_code: StatusCode) -> Self {
+impl<'a> Response<'a> {
+    pub fn new(body: Option<String>, status_code: StatusCode, headers: Option<Vec<&'a str>>) -> Self {
         Self {
             body,
             status_code,
+            headers,
         }
     }
 
@@ -19,13 +21,25 @@ impl Response {
             Some(value) => value,
             None => ""
         };
+        let headers = match &self.headers {
+            Some(h) => h.join("\r\n"),
+            None => String::new()
+        };
 
         write!(
             stream,
-            "HTTP/1.1 {} {}\r\n\r\n{}",
+            "HTTP/1.1 {} {}\r\n{}\r\n\r\n{}",
             self.status_code,
             self.status_code.reason_phrase(),
+            headers,
             body
         )
+    }
+}
+
+fn some_or_empty_string(value: Option<&String>) -> &str {
+    match value {
+        Some(v) => v,
+        None => ""
     }
 }

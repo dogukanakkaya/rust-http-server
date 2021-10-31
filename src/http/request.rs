@@ -1,21 +1,23 @@
 use std::convert::TryFrom;
 use std::error::Error;
-use super::{Method, QueryString};
+use super::{Method, QueryString, Headers};
 use std::fmt::{
     Display,
     Debug,
     Formatter,
 };
 use std::str;
+use std::str::Split;
 
 #[derive(Debug)]
 pub struct Request<'buf> {
     method: Method,
     path: &'buf str,
     query_string: Option<QueryString<'buf>>,
+    headers: Option<Headers<'buf>>,
 }
 
-impl <'buf> Request<'buf> {
+impl<'buf> Request<'buf> {
     pub fn method(&self) -> &Method {
         &self.method
     }
@@ -27,6 +29,10 @@ impl <'buf> Request<'buf> {
     pub fn query_string(&self) -> Option<&QueryString<'buf>> {
         self.query_string.as_ref()
     }
+
+    pub fn headers(&self) -> Option<&Headers<'buf>> {
+        self.headers.as_ref()
+    }
 }
 
 impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
@@ -37,7 +43,7 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
 
         let (method, request) = get_next_word(request).ok_or(RequestError::InvalidMethod)?;
         let (mut path, request) = get_next_word(request).ok_or(RequestError::InvalidRequest)?;
-        let (protocol, _) = get_next_word(request).ok_or(RequestError::InvalidProtocol)?;
+        let (protocol, request) = get_next_word(request).ok_or(RequestError::InvalidProtocol)?;
 
         let method: Method = method.parse().or(Err(RequestError::InvalidMethod))?;
 
@@ -52,10 +58,13 @@ impl<'buf> TryFrom<&'buf [u8]> for Request<'buf> {
             path = &path[..i];
         }
 
+        let headers = Some(Headers::from(&request));
+
         Ok(Self {
             method,
             path,
             query_string,
+            headers,
         })
     }
 }
