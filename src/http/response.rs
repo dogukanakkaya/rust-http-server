@@ -36,10 +36,3 @@ impl<'a> Response<'a> {
         )
     }
 }
-
-fn some_or_empty_string(value: Option<&String>) -> &str {
-    match value {
-        Some(v) => v,
-        None => ""
-    }
-}
